@@ -1,9 +1,23 @@
 #pragma once
 
 #include <fstream>
+#include <vector>
 #include "Types.h"
 
 class Picture
+{
+public:
+	void Open(const char* path);
+
+private:
+	int width = 0;
+	int height = 0;
+	int channels = 0;
+
+	std::vector<Color> pixels;
+};
+
+class Picture_Old
 {
 public:
 	void Open(const char* path);

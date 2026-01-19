@@ -1,12 +1,47 @@
 
 #include "Picture.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include <iostream>
 #include <filesystem>
-#include <vector>
 #include <regex>
 
 void Picture::Open(const char* path)
+{
+	// ... process data if not NULL ...
+	// ... x = width, y = height, n = # 8-bit components per pixel ...
+	// ... replace '0' with '1'..'4' to force that many components per pixel
+	// ... but 'n' will always be the number that it would have been if you said 0
+	unsigned char *data = stbi_load(path, &width, &height, &channels, 0);
+
+	if (data == nullptr || channels < 3)
+	{
+		stbi_image_free(data);
+		return;
+	}
+
+	std::cout << "Image dimesions are " << width << "x" << height << " (" << channels << " channels)" << std::endl;
+
+	pixels.resize(width * height);
+
+	for (int i = 0; i < width * height; i++)
+	{
+		pixels[i].r = data[i * channels];
+		pixels[i].g = data[i * channels + 1];
+		pixels[i].b = data[i * channels + 2];
+	
+		if (channels = 4)
+			pixels[i].a = data[i * channels + 3];
+	}
+
+	stbi_image_free(data);
+
+	
+}
+
+void Picture_Old::Open(const char* path)
 {
 	pic.open(path, std::ifstream::in | std::ifstream::binary);
 
@@ -21,7 +56,7 @@ void Picture::Open(const char* path)
 		pic.close();
 }
 
-void Picture::MakeTxt(const char* path)
+void Picture_Old::MakeTxt(const char* path)
 {
 	std::cout << "Current path is " << std::filesystem::current_path() << '\n';
 	pic.open(path, std::ifstream::in | std::ifstream::binary);
@@ -60,7 +95,7 @@ void Picture::MakeTxt(const char* path)
 }
 
 
-void Picture::GetSignature()
+void Picture_Old::GetSignature()
 {
 	int bytes[8] = {};
 
@@ -76,7 +111,7 @@ void Picture::GetSignature()
 	std::cout << std::endl;
 }
 
-void Picture::GetChunk()
+void Picture_Old::GetChunk()
 {
 	int32_t chkLen = ReadInt();
 	uint8_t chkType[4];
