@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Picture.h"
+#include "PictureProcessor.h"
 
 
 int main(int argc, char* argv[])
@@ -13,6 +14,10 @@ int main(int argc, char* argv[])
 	
 	picture.Open("Resources/zarro.png");
 	
+	PictureProcessor processor;
+
+	processor.ProcessPicture(picture);
+
 	//picture.MakeTxt("Resources/zarro.png");
 
 	return 0;

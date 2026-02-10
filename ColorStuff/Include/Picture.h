@@ -9,6 +9,15 @@ class Picture
 public:
 	void Open(const char* path);
 
+	Dimensions GetDimensions() const {
+		Dimensions dim; 
+		dim.height = height;
+		dim.width = width;
+		return dim;
+	}
+
+	const std::vector<Color>& GetPixels() const { return pixels; }
+
 private:
 	int width = 0;
 	int height = 0;
@@ -17,6 +26,7 @@ private:
 	std::vector<Color> pixels;
 };
 
+#pragma region OLD_CLASS
 class Picture_Old
 {
 public:
@@ -60,3 +70,4 @@ private:
 
 	void GetChunk();
 };
+#pragma endregion

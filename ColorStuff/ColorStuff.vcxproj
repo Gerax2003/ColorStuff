@@ -137,8 +137,10 @@
   <ItemGroup>
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Picture.cpp" />
+    <ClCompile Include="Source\PictureProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Include\PictureProcessor.h" />
     <ClInclude Include="Include\stb_image.h" />
     <ClInclude Include="Include\Types.h" />
     <ClInclude Include="Include\Picture.h" />

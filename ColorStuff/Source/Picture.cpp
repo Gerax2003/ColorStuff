@@ -36,11 +36,11 @@ void Picture::Open(const char* path)
 			pixels[i].a = data[i * channels + 3];
 	}
 
-	stbi_image_free(data);
-
-	
+	stbi_image_free(data);	
 }
 
+
+#pragma region OLD_CLASS
 void Picture_Old::Open(const char* path)
 {
 	pic.open(path, std::ifstream::in | std::ifstream::binary);
@@ -93,7 +93,6 @@ void Picture_Old::MakeTxt(const char* path)
 	txt << str;
 	txt.close();
 }
-
 
 void Picture_Old::GetSignature()
 {
@@ -166,3 +165,4 @@ void Picture_Old::GetChunk()
 	}
 	std::cout << "--------------" << std::endl;
 }
+#pragma endregion
