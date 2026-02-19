@@ -14,5 +14,8 @@ public:
 
 private:
 	std::vector<ColorFrequency> colorFrequencies;
+	std::vector<Color> centers;
+
+	void KMeans(int maxIterations = 4);
 };
 
