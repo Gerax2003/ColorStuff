@@ -64,7 +64,7 @@ struct Color
 		this->b = c;
 		this->a = c;
 	}
-	Color operator+(const Color& c)
+	Color operator+(const Color& c) const
 	{
 		Color r;
 		r.r = this->r + c.r;
@@ -73,13 +73,31 @@ struct Color
 		r.a = this->a + c.a;
 		return r;
 	}
-	Color operator/(const float d)
+	Color operator/(const float d) const
 	{
 		Color c;
 		c.r = this->r / d;
 		c.g = this->g / d;
 		c.b = this->b / d;
 		c.a = this->a / d;
+		return c;
+	}
+	Color operator*(const float d) const
+	{
+		Color c;
+		c.r = this->r * d;
+		c.g = this->g * d;
+		c.b = this->b * d;
+		c.a = this->a * d;
+		return c;
+	}
+	Color operator*(const int d) const
+	{
+		Color c;
+		c.r = this->r * d;
+		c.g = this->g * d;
+		c.b = this->b * d;
+		c.a = this->a * d;
 		return c;
 	}
 };

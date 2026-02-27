@@ -54,6 +54,8 @@ void PictureProcessor::ProcessPicture(const Picture& inPicture)
 	centers.push_back(colorFrequencies[7].c);
 	centers.push_back(colorFrequencies[3].c);
 	centers.push_back(colorFrequencies[9].c);
+
+
 	std::cout << "Base centers: " << std::endl;
 	for (const Color& c : centers)
 	{
@@ -75,7 +77,7 @@ void PictureProcessor::KMeans(int maxIterations)
 	int iteration = 0;
 	while (!converged && iteration < maxIterations)
 	{
-		std::vector<std::vector<Color>> clusters;
+		std::vector<std::vector<ColorFrequency>> clusters;
 		clusters.resize(centers.size());
 
 		for (const ColorFrequency& cf : colorFrequencies)
@@ -92,21 +94,25 @@ void PictureProcessor::KMeans(int maxIterations)
 					cluster = i;
 				}
 			}
-			clusters[cluster].push_back(cf.c);
+			clusters[cluster].push_back(cf);
 		}
 
 		converged = true;
 		for (int i = 0; i < centers.size(); i++)
 		{
-			Color sum;
-			for (const Color& c : clusters[i])
-				sum += c;
+			Color colSum;
+			int pointsSum = 0;
+			for (const ColorFrequency& cf : clusters[i])
+			{
+				colSum += cf.c * cf.frequency;
+				pointsSum += cf.frequency;
+			}
 
-			sum /= clusters[i].size();
-			if (converged == false || sum != centers[i])
+			colSum /= pointsSum;
+			if (converged == false || colSum != centers[i])
 			{
 				converged = false;
-				centers[i] = sum;
+				centers[i] = colSum;
 			}
 		}
 		iteration++;
