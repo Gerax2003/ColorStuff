@@ -17,5 +17,6 @@ private:
 	std::vector<Color> centers;
 
 	void KMeans(int maxIterations = 4);
+	void KPP(int numCenters);
 };
 

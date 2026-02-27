@@ -48,13 +48,14 @@ void PictureProcessor::ProcessPicture(const Picture& inPicture)
 		i++;
 	}
 
-	centers.push_back(colorFrequencies[0].c);
-	centers.push_back(colorFrequencies[5].c);
-	centers.push_back(colorFrequencies[10].c);
-	centers.push_back(colorFrequencies[7].c);
-	centers.push_back(colorFrequencies[3].c);
-	centers.push_back(colorFrequencies[9].c);
+	//centers.push_back(colorFrequencies[0].c);
+	//centers.push_back(colorFrequencies[5].c);
+	//centers.push_back(colorFrequencies[10].c);
+	//centers.push_back(colorFrequencies[7].c);
+	//centers.push_back(colorFrequencies[3].c);
+	//centers.push_back(colorFrequencies[9].c);
 
+	KPP(6);
 
 	std::cout << "Base centers: " << std::endl;
 	for (const Color& c : centers)
@@ -62,7 +63,7 @@ void PictureProcessor::ProcessPicture(const Picture& inPicture)
 		std::cout << "(" << c.r << "," << c.g << "," << c.b << "," << c.a << ")" << "\n";
 		i++;
 	}
-	KMeans(40);
+	KMeans(100);
 	std::cout << "-------------\n" << "New centers: " << std::endl;
 	for (const Color& c : centers)
 	{
@@ -100,21 +101,59 @@ void PictureProcessor::KMeans(int maxIterations)
 		converged = true;
 		for (int i = 0; i < centers.size(); i++)
 		{
-			Color colSum;
+			Color colorMean;
 			int pointsSum = 0;
 			for (const ColorFrequency& cf : clusters[i])
 			{
-				colSum += cf.c * cf.frequency;
+				colorMean += cf.c * cf.frequency;
 				pointsSum += cf.frequency;
 			}
 
-			colSum /= pointsSum;
-			if (converged == false || colSum != centers[i])
+			colorMean /= pointsSum;
+			if (converged == false || colorMean != centers[i])
 			{
 				converged = false;
-				centers[i] = colSum;
+				centers[i] = colorMean;
 			}
 		}
 		iteration++;
 	}
 }
+
+void PictureProcessor::KPP(int numCenters)
+{
+	centers.clear();
+	centers.push_back(colorFrequencies[rand()%colorFrequencies.size()].c);
+
+	while (centers.size() < numCenters)
+	{
+		std::vector<float> sqDistances;
+		float totalDist = 0;
+		for (int i = 0; i < colorFrequencies.size(); i++)
+		{
+			Color c = colorFrequencies[i].c;
+			float minDist = c.SqDist(centers[0]);
+			for (int j = 1; j < centers.size(); j++)
+			{
+				float d = c.SqDist(centers[j]);
+				if (d < minDist)
+					minDist = d;
+			}
+			totalDist += minDist;
+			sqDistances.push_back(minDist);
+		}
+
+		int threshold = rand() % (int)(totalDist);
+		float sum = 0;
+		for (int i = 0; i < colorFrequencies.size(); i++)
+		{
+			sum += sqDistances[i];
+			if (sum >= threshold)
+			{
+				centers.push_back(colorFrequencies[i].c);
+				break;
+			}
+		}
+	}
+}
+
