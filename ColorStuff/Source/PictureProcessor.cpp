@@ -2,8 +2,35 @@
 #include "PictureProcessor.h"
 #include "Picture.h"
 
+#include <filesystem>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
+#include <regex>
+
+void WritePalette(std::vector<Color>& colors, const std::string& paletteName)
+{
+	std::ofstream txt;
+	txt.open("Output/" + paletteName + ".txt", std::ofstream::out);
+	
+	if (!txt.is_open())
+		return;
+	Color c0;
+	c0.a = 1;
+
+	colors.push_back(c0);
+	std::string str = "";
+	for (const Color& c : colors)
+	{
+		str += std::format("{:02X}", c.a) 
+			+ std::format("{:02X}", c.r) 
+			+ std::format("{:02X}", c.g) 
+			+ std::format("{:02X}", c.b) + "\n";
+	}
+
+	txt << str;
+	txt.close();
+}
 
 void PictureProcessor::ProcessPicture(const Picture& inPicture)
 {
@@ -48,14 +75,7 @@ void PictureProcessor::ProcessPicture(const Picture& inPicture)
 		i++;
 	}
 
-	//centers.push_back(colorFrequencies[0].c);
-	//centers.push_back(colorFrequencies[5].c);
-	//centers.push_back(colorFrequencies[10].c);
-	//centers.push_back(colorFrequencies[7].c);
-	//centers.push_back(colorFrequencies[3].c);
-	//centers.push_back(colorFrequencies[9].c);
-
-	KPP(6);
+	KPP(16);
 
 	std::cout << "Base centers: " << std::endl;
 	for (const Color& c : centers)
@@ -70,6 +90,8 @@ void PictureProcessor::ProcessPicture(const Picture& inPicture)
 		std::cout << "(" << c.r << "," << c.g << "," << c.b << "," << c.a << ")" << "\n";
 		i++;
 	}
+
+	WritePalette(centers, "kmeans");
 }
 
 void PictureProcessor::KMeans(int maxIterations)
