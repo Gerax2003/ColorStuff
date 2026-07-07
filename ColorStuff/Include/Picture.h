@@ -16,14 +16,14 @@ public:
 		return dim;
 	}
 
-	const std::vector<Color>& GetPixels() const { return pixels; }
+	const std::vector<RGBColor>& GetPixels() const { return pixels; }
 
 private:
 	int width = 0;
 	int height = 0;
 	int channels = 0;
 
-	std::vector<Color> pixels;
+	std::vector<RGBColor> pixels;
 };
 
 #pragma region OLD_CLASS

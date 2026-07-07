@@ -8,19 +8,19 @@
 #include <fstream>
 #include <regex>
 
-void WritePalette(std::vector<Color>& colors, const std::string& paletteName)
+void WritePalette(std::vector<RGBColor>& colors, const std::string& paletteName)
 {
 	std::ofstream txt;
 	txt.open("Output/" + paletteName + ".txt", std::ofstream::out);
 	
 	if (!txt.is_open())
 		return;
-	Color c0;
+	RGBColor c0;
 	c0.a = 1;
 
 	colors.push_back(c0);
 	std::string str = "";
-	for (const Color& c : colors)
+	for (const RGBColor& c : colors)
 	{
 		str += std::format("{:02X}", c.a) 
 			+ std::format("{:02X}", c.r) 
@@ -30,14 +30,16 @@ void WritePalette(std::vector<Color>& colors, const std::string& paletteName)
 
 	txt << str;
 	txt.close();
+
+	std::cout << "Palette written in: Output/" << paletteName << ".txt" << std::endl;
 }
 
-void PictureProcessor::ProcessPicture(const Picture& inPicture)
+void PictureProcessor::ProcessPicture(const Picture& inPicture, const char* outName)
 {
-	std::map<Color, int> colorMap;
+	std::map<RGBColor, int> colorMap;
 
 	// List all colors and how many pixels use them
-	for (Color c : inPicture.GetPixels())
+	for (RGBColor c : inPicture.GetPixels())
 	{
 		// transparent is useless for our usage
 		if (c.a <= 196)
@@ -56,7 +58,7 @@ void PictureProcessor::ProcessPicture(const Picture& inPicture)
 	// Change from a map to a vector sorted by frequency for convenience of use
 	colorFrequencies.resize(colorMap.size());
 	int i = 0;
-	for (std::map<Color, int>::iterator it = colorMap.begin(); it != colorMap.end(); ++it)
+	for (std::map<RGBColor, int>::iterator it = colorMap.begin(); it != colorMap.end(); ++it)
 	{
 		colorFrequencies[i].c = it->first;
 		colorFrequencies[i].frequency = it->second;
@@ -78,20 +80,20 @@ void PictureProcessor::ProcessPicture(const Picture& inPicture)
 	KPP(16);
 
 	std::cout << "Base centers: " << std::endl;
-	for (const Color& c : centers)
+	for (const RGBColor& c : centers)
 	{
 		std::cout << "(" << c.r << "," << c.g << "," << c.b << "," << c.a << ")" << "\n";
 		i++;
 	}
 	KMeans(100);
 	std::cout << "-------------\n" << "New centers: " << std::endl;
-	for (const Color& c : centers)
+	for (const RGBColor& c : centers)
 	{
 		std::cout << "(" << c.r << "," << c.g << "," << c.b << "," << c.a << ")" << "\n";
 		i++;
 	}
 
-	WritePalette(centers, "kmeans");
+	WritePalette(centers, outName);
 }
 
 void PictureProcessor::KMeans(int maxIterations)
@@ -123,7 +125,7 @@ void PictureProcessor::KMeans(int maxIterations)
 		converged = true;
 		for (int i = 0; i < centers.size(); i++)
 		{
-			Color colorMean;
+			RGBColor colorMean;
 			int pointsSum = 0;
 			for (const ColorFrequency& cf : clusters[i])
 			{
@@ -153,7 +155,7 @@ void PictureProcessor::KPP(int numCenters)
 		float totalDist = 0;
 		for (int i = 0; i < colorFrequencies.size(); i++)
 		{
-			Color c = colorFrequencies[i].c;
+			RGBColor c = colorFrequencies[i].c;
 			float minDist = c.SqDist(centers[0]);
 			for (int j = 1; j < centers.size(); j++)
 			{
