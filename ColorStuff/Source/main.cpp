@@ -13,17 +13,17 @@ int main(int argc, char* argv[])
 {
 	Picture picture;
 	
-	picture.Open("Resources/mt.png");
+	picture.Open("Resources/zarro.png");
 	
 	PictureProcessor processor;
 
-	//processor.ProcessPicture(picture, "mt");
+	processor.ProcessPicture(picture, "mt");
 
 	//picture.MakeTxt("Resources/zarro.png");
 
-	Tests t;
+	/*Tests t;
 
-	t.RunAll();
+	t.RunAll();*/
 
 	return 0;
 }

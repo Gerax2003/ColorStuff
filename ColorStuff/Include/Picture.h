@@ -16,7 +16,7 @@ public:
 		return dim;
 	}
 
-	const std::vector<RGBColor>& GetPixels() const { return pixels; }
+	std::vector<RGBColor>& GetPixels() { return pixels; }
 
 private:
 	int width = 0;

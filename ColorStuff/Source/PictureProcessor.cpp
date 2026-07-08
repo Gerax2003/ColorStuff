@@ -8,33 +8,7 @@
 #include <fstream>
 #include <regex>
 
-void WritePalette(std::vector<RGBColor>& colors, const std::string& paletteName)
-{
-	std::ofstream txt;
-	txt.open("Output/" + paletteName + ".txt", std::ofstream::out);
-	
-	if (!txt.is_open())
-		return;
-	RGBColor c0;
-	c0.a = 1;
-
-	colors.push_back(c0);
-	std::string str = "";
-	for (const RGBColor& c : colors)
-	{
-		str += std::format("{:02X}", c.a) 
-			+ std::format("{:02X}", c.r) 
-			+ std::format("{:02X}", c.g) 
-			+ std::format("{:02X}", c.b) + "\n";
-	}
-
-	txt << str;
-	txt.close();
-
-	std::cout << "Palette written in: Output/" << paletteName << ".txt" << std::endl;
-}
-
-void PictureProcessor::ProcessPicture(const Picture& inPicture, const char* outName)
+void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 {
 	std::map<RGBColor, int> colorMap;
 
@@ -70,11 +44,13 @@ void PictureProcessor::ProcessPicture(const Picture& inPicture, const char* outN
 	float invImgSize = inPicture.GetDimensions().width * inPicture.GetDimensions().height;
 	invImgSize = 1 / invImgSize;
 	i = 0;
-	std::cout << "Color count: " << std::endl;
+	std::cout << "Color count (max 100): " << std::endl;
 	for (const ColorFrequency& cf : colorFrequencies)
 	{
 		std::cout << i << "  -(" << cf.c.r << "," << cf.c.g << "," << cf.c.b << "," << cf.c.a << "): " << cf.frequency * invImgSize * 100 << "% [" << cf.frequency << "]\n";
 		i++;
+		if (i > 100)
+			break;
 	}
 
 	KPP(16);
@@ -85,7 +61,7 @@ void PictureProcessor::ProcessPicture(const Picture& inPicture, const char* outN
 		std::cout << "(" << c.r << "," << c.g << "," << c.b << "," << c.a << ")" << "\n";
 		i++;
 	}
-	KMeans(100);
+	KMeans(1000);
 	std::cout << "-------------\n" << "New centers: " << std::endl;
 	for (const RGBColor& c : centers)
 	{
@@ -94,6 +70,74 @@ void PictureProcessor::ProcessPicture(const Picture& inPicture, const char* outN
 	}
 
 	WritePalette(centers, outName);
+
+	ReducePalette(inPicture);
+
+}
+
+void PictureProcessor::WritePalette(std::vector<RGBColor>& colors, const std::string& paletteName)
+{
+	std::ofstream txt;
+	txt.open("Output/" + paletteName + ".txt", std::ofstream::out);
+
+	if (!txt.is_open())
+		return;
+	RGBColor c0;
+	c0.a = 1;
+
+	colors.push_back(c0);
+	std::string str = "";
+	for (const RGBColor& c : colors)
+	{
+		str += std::format("{:02X}", c.a)
+			+ std::format("{:02X}", c.r)
+			+ std::format("{:02X}", c.g)
+			+ std::format("{:02X}", c.b) + "\n";
+	}
+
+	txt << str;
+	txt.close();
+
+	std::cout << "Palette written in: Output/" << paletteName << ".txt" << std::endl;
+}
+
+void PictureProcessor::ReducePalette(Picture& inPicture)
+{
+	std::vector<RGBColor>& pixels = inPicture.GetPixels();
+
+	std::cout << "Reducing palette of the original picture, processing " << pixels.size() << " pixels" << std::endl;
+	
+	for (int i = 0; i < pixels.size(); i++)
+	{
+		for (int p = 1; p < 10; p++)
+		{
+			int tenth = pixels.size() / 10;
+			if (i == tenth * p)
+			{
+				std::cout << "Progress @ " << p * 10 << "% (" << i << "/" << pixels.size() << ")" << std::endl;
+				break;
+			}
+		}
+
+		if (pixels[i].a == 0)
+			continue;
+
+		int id = 0;
+		float d = FLT_MAX;
+
+		for (int j = 0; j < centers.size(); j++)
+		{
+			float dist = centers[j].SqDist(pixels[i]);
+
+			if (dist < d)
+			{
+				d = dist;
+				id = j;
+			}
+		}
+
+		pixels[i] = centers[id];
+	}
 }
 
 void PictureProcessor::KMeans(int maxIterations)
