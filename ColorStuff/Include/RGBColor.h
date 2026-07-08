@@ -20,8 +20,8 @@ struct RGBColor
 		return rd * rd + gd * gd + bd * bd + ad * ad;
 	}
 
-	// converts rgb into xyz
-	// formula from https://en.wikipedia.org/w/index.php?title=SRGB&oldid=334954361#The_reverse_transformation
+	// converts rgb into xyz, can shift value of a channel by 1 due to int->float conversion
+	// formula from https://www.easyrgb.com/en/math.php
 	XYZColor RgbToXyz();
 
 	std::string String();

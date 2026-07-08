@@ -6,6 +6,7 @@
 
 #include "Picture.h"
 #include "PictureProcessor.h"
+#include "Tests.h"
 
 
 int main(int argc, char* argv[])
@@ -20,18 +21,9 @@ int main(int argc, char* argv[])
 
 	//picture.MakeTxt("Resources/zarro.png");
 
-	RGBColor c = { 255,255,255 };
-	XYZColor cXyz = c.RgbToXyz();
-	LabColor cLab = cXyz.XyzToLab();
+	Tests t;
 
-	std::cout << "Type conversions:" << std::endl;
-	std::cout << "rgb: " << c.String() << "; xyz: " << cXyz.String() << "; Lab: " << cLab.String() << std::endl;
-	
-	cXyz = cLab.LabToXyz();
-	c = cXyz.XyzToRgb();
-
-	std::cout << "Inverse conversions:" << std::endl;
-	std::cout << "rgb: " << c.String() << "; xyz: " << cXyz.String() << "; Lab: " << cLab.String() << std::endl;
+	t.RunAll();
 
 	return 0;
 }

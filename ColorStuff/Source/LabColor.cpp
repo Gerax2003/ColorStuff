@@ -2,24 +2,23 @@
 #include "LabColor.h"
 
 #include "XYZColor.h"
+#include "Constants.h"
 
-// converts Lab into xyz
-// formula from https://en.wikipedia.org/wiki/CIELAB_color_space#From_CIELAB_to_CIEXYZ
 XYZColor LabColor::LabToXyz()
 {
 	XYZColor xyz;
-	xyz.y = (L + 16) / 116; 
-	xyz.x = xyz.y + a / 500;
-	xyz.z = xyz.y - b / 200;
+	xyz.y = (L + 16.f) / 116.f; 
+	xyz.x = a / 500.f + xyz.y;
+	xyz.z = xyz.y - b / 200.f;
 
 	// Function for the conversion
-	auto fLab = [](float t) { //t^3
-		return t > 0.2069f ? t * t * t : (t - 16.f/116.f) * 0.1284f;
+	auto fLab = [](float t) { 
+		return t > 0.2069f ? t * t * t : (t - 16.f/116.f) / 7.787f;
 		};
 
-	xyz.x = fLab(xyz.x);
-	xyz.y = fLab(xyz.y);
-	xyz.z = fLab(xyz.z);
+	xyz.x = fLab(xyz.x) * REF_X;
+	xyz.y = fLab(xyz.y) * REF_Y;
+	xyz.z = fLab(xyz.z) * REF_Z; 
 
 	return xyz;
 }

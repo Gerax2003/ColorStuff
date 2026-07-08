@@ -15,12 +15,12 @@ struct XYZColor
 	XYZColor() = default;
 	XYZColor(RGBColor c);
 
-	// converts xyz into rgb
-	// formula from https://en.wikipedia.org/w/index.php?title=SRGB&oldid=334954361#The_reverse_transformation
+	// converts xyz into rgb, can shift value of a channel by 1 due to float->int conversion
+	// formula from https://www.easyrgb.com/en/math.php
 	RGBColor XyzToRgb();
 
 	// converts xyz into Lab
-	// formula from https://en.wikipedia.org/wiki/CIELAB_color_space#From_CIE_XYZ_to_CIELAB
+	// formula from https://www.easyrgb.com/en/math.php
 	LabColor XyzToLab();
 
 	std::string String();

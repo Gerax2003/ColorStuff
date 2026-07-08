@@ -12,7 +12,7 @@ struct LabColor
 	float alpha = 0;
 
 	// converts Lab into xyz
-	// formula from https://en.wikipedia.org/wiki/CIELAB_color_space#From_CIELAB_to_CIEXYZ
+	// formula from https://www.easyrgb.com/en/math.php
 	XYZColor LabToXyz();
 
 	std::string String();
