@@ -8,6 +8,22 @@
 #include <filesystem>
 #include <regex>
 
+void IntToByte(char* bytes, int v)
+{
+	bytes[0] = v >> 0;
+	bytes[1] = v >> 8;
+	bytes[2] = v >> 16;
+	bytes[3] = v >> 24;
+}
+
+void ColorToByte(char* bytes, RGBColor v)
+{
+	bytes[0] = v.r >> 0;
+	bytes[1] = v.g >> 0;
+	bytes[2] = v.b >> 0;
+	bytes[3] = v.a >> 0;
+}
+
 void Picture::Open(const char* path)
 {
 	// ... process data if not NULL ...
@@ -39,6 +55,50 @@ void Picture::Open(const char* path)
 	stbi_image_free(data);	
 }
 
+void Picture::WritePicture(const char* fileName)
+{
+	std::string path = "Output/";
+	path += fileName;
+	//path += ".bmp";
+	path += ".pam";
+
+	std::ofstream txt;
+	txt.open(path, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
+	if (!txt.is_open())
+		return;
+	
+	/// PAM FORMAT
+
+	// header
+	txt << "P7\nWIDTH " << width 
+		<< "\nHEIGHT " << height 
+		<< "\nMAXVAL 255\nDEPTH 4\nTUPLTYPE RGB_ALPHA\nENDHDR\n";
+
+	std::vector<char> bytes;
+	bytes.resize(4 * height * width);
+
+	for (int i = 0; i < pixels.size(); i++)
+	{
+		ColorToByte(&bytes[i * 4], pixels[i]);
+	}
+
+	txt.write(&bytes[0], bytes.size() * sizeof(char));
+
+
+	/// BMP FORMAT
+	//char byte[4];
+
+	//// header based on https://cplusplus.com/forum/beginner/4307/
+	//txt << 'B' << 'M';
+
+	//// 14 bytes for file header, 40 for BITMAPINFOHEADER, h*w for pic size
+	//IntToByte(byte, 14 + 40 + height * width);
+	//txt.write(byte, 4 * sizeof(char));
+	//IntToByte(byte, 0);
+	//txt.write(byte, 4 * sizeof(char));
+
+	txt.close();
+}
 
 #pragma region OLD_CLASS
 void Picture_Old::Open(const char* path)

@@ -73,6 +73,7 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 
 	ReducePalette(inPicture);
 
+	inPicture.WritePicture(outName);
 }
 
 void PictureProcessor::WritePalette(std::vector<RGBColor>& colors, const std::string& paletteName)

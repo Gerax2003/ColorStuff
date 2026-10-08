@@ -18,6 +18,8 @@ public:
 
 	std::vector<RGBColor>& GetPixels() { return pixels; }
 
+	void WritePicture(const char* fileName);
+
 private:
 	int width = 0;
 	int height = 0;
