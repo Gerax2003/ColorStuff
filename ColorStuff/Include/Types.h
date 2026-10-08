@@ -34,3 +34,9 @@ struct ColorFrequency
 		return this->frequency >= other.frequency;
 	}
 };
+
+enum PictureFormat
+{
+	PAM,
+	BMP
+};

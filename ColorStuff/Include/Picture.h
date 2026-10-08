@@ -18,7 +18,7 @@ public:
 
 	std::vector<RGBColor>& GetPixels() { return pixels; }
 
-	void WritePicture(const char* fileName);
+	void WritePicture(const char* fileName, const PictureFormat format = PictureFormat::PAM);
 
 private:
 	int width = 0;
@@ -26,6 +26,9 @@ private:
 	int channels = 0;
 
 	std::vector<RGBColor> pixels;
+
+	void WritePAM(const char* fileName);
+	void WriteBMP(const char* fileName);
 };
 
 #pragma region OLD_CLASS

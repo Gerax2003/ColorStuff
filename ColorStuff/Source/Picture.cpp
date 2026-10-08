@@ -55,47 +55,96 @@ void Picture::Open(const char* path)
 	stbi_image_free(data);	
 }
 
-void Picture::WritePicture(const char* fileName)
+void Picture::WritePicture(const char* fileName, const PictureFormat format)
+{
+	switch (format)
+	{
+	case PictureFormat::PAM:
+		WritePAM(fileName);
+		break;
+	case PictureFormat::BMP:
+		WriteBMP(fileName);
+		break;
+	default:
+		WritePAM(fileName);
+		break;
+	}
+}
+
+void Picture::WritePAM(const char* fileName)
 {
 	std::string path = "Output/";
 	path += fileName;
-	//path += ".bmp";
 	path += ".pam";
 
 	std::ofstream txt;
 	txt.open(path, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
 	if (!txt.is_open())
 		return;
-	
-	/// PAM FORMAT
 
 	// header
-	txt << "P7\nWIDTH " << width 
-		<< "\nHEIGHT " << height 
+	txt << "P7\nWIDTH " << width
+		<< "\nHEIGHT " << height
 		<< "\nMAXVAL 255\nDEPTH 4\nTUPLTYPE RGB_ALPHA\nENDHDR\n";
 
 	std::vector<char> bytes;
 	bytes.resize(4 * height * width);
 
 	for (int i = 0; i < pixels.size(); i++)
-	{
 		ColorToByte(&bytes[i * 4], pixels[i]);
-	}
 
 	txt.write(&bytes[0], bytes.size() * sizeof(char));
 
+	txt.close();
+}
 
-	/// BMP FORMAT
-	//char byte[4];
+void Picture::WriteBMP(const char* fileName)
+{
+	std::string path = "Output/";
+	path += fileName;
+	path += ".bmp";
 
-	//// header based on https://cplusplus.com/forum/beginner/4307/
-	//txt << 'B' << 'M';
+	std::ofstream txt;
+	txt.open(path, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
+	if (!txt.is_open())
+		return;
 
-	//// 14 bytes for file header, 40 for BITMAPINFOHEADER, h*w for pic size
-	//IntToByte(byte, 14 + 40 + height * width);
-	//txt.write(byte, 4 * sizeof(char));
-	//IntToByte(byte, 0);
-	//txt.write(byte, 4 * sizeof(char));
+	char byte[4];
+
+	// header based on https://cplusplus.com/forum/beginner/4307/
+	txt << 'B' << 'M';
+
+	// FORMAT HEADER
+	// 14 bytes for file header, 40 for BITMAPINFOHEADER, h*w for pic size
+	IntToByte(byte, 14 + 40 + height * width * 4);
+	txt.write(byte, 4 * sizeof(char));
+	IntToByte(byte, 0);
+	txt.write(byte, 4 * sizeof(char));
+
+	// BITMAPINOFHEADER (https://en.wikipedia.org/wiki/BMP_file_format#DIB_header)
+	IntToByte(byte, 40);
+	txt.write(byte, 4 * sizeof(char));
+	IntToByte(byte, width);
+	txt.write(byte, 4 * sizeof(char));
+	IntToByte(byte, height);
+	txt.write(byte, 4 * sizeof(char));
+	IntToByte(byte, 1); // IMPORTANT: 2 bytes set to number 1, might need to inverse order here
+	txt.write(byte, 2 * sizeof(char));
+	IntToByte(byte, channels * 8);
+	txt.write(byte, 2 * sizeof(char));
+	IntToByte(byte, 0); // Compression: 0 means no compression, we write RAW in this house
+	txt.write(byte, 4 * sizeof(char));
+	IntToByte(byte, channels * 8);
+	txt.write(byte, 4 * sizeof(char)); 
+	IntToByte(byte, channels * height * width * sizeof(char));
+	txt.write(byte, 4 * sizeof(char));
+	IntToByte(byte, 0); // PPMX, PPMY, Color Table & important colors all set to 0 for unspecified
+	txt.write(byte, 4 * sizeof(char));
+	txt.write(byte, 4 * sizeof(char));
+	txt.write(byte, 4 * sizeof(char));
+	txt.write(byte, 4 * sizeof(char));
+
+
 
 	txt.close();
 }
