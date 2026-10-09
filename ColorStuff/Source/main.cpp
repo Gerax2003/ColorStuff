@@ -19,11 +19,9 @@ int main(int argc, char* argv[])
 
 	processor.ProcessPicture(picture, "mt");
 
-	//picture.MakeTxt("Resources/zarro.png");
+	//Tests t;
 
-	/*Tests t;
-
-	t.RunAll();*/
+	//t.RunAll();
 
 	return 0;
 }

@@ -74,6 +74,7 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 	ReducePalette(inPicture);
 
 	inPicture.WritePicture(outName);
+	inPicture.WritePicture(outName, PictureFormat::BMP);
 }
 
 void PictureProcessor::WritePalette(std::vector<RGBColor>& colors, const std::string& paletteName)
@@ -139,6 +140,7 @@ void PictureProcessor::ReducePalette(Picture& inPicture)
 
 		pixels[i] = centers[id];
 	}
+	std::cout << "Progress @ 100% (" << pixels.size() << "/" << pixels.size() << ")" << std::endl << std::endl;
 }
 
 void PictureProcessor::KMeans(int maxIterations)

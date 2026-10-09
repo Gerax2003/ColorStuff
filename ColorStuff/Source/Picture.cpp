@@ -1,5 +1,6 @@
 
 #include "Picture.h"
+#include "Constants.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -16,12 +17,22 @@ void IntToByte(char* bytes, int v)
 	bytes[3] = v >> 24;
 }
 
-void ColorToByte(char* bytes, RGBColor v)
+void ColorToByte(char* bytes, RGBColor v, bool invertRGB = false)
 {
-	bytes[0] = v.r >> 0;
-	bytes[1] = v.g >> 0;
-	bytes[2] = v.b >> 0;
-	bytes[3] = v.a >> 0;
+	if (invertRGB)
+	{
+		bytes[2] = v.r >> 0;
+		bytes[1] = v.g >> 0;
+		bytes[0] = v.b >> 0;
+		bytes[3] = v.a >> 0;
+	}
+	else
+	{
+		bytes[0] = v.r >> 0;
+		bytes[1] = v.g >> 0;
+		bytes[2] = v.b >> 0;
+		bytes[3] = v.a >> 0;
+	}
 }
 
 void Picture::Open(const char* path)
@@ -71,22 +82,28 @@ void Picture::WritePicture(const char* fileName, const PictureFormat format)
 	}
 }
 
+// Initially meant to be P6 PPM but only PAM supports alpha (PAM is barely supported LMAOOOOOOOOO)
 void Picture::WritePAM(const char* fileName)
 {
 	std::string path = "Output/";
 	path += fileName;
 	path += ".pam";
+	std::cout << "Writing picture at " << path << std::endl;
 
 	std::ofstream txt;
 	txt.open(path, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
 	if (!txt.is_open())
+	{
+		std::cout << "Error writing picture at " << path << std::endl;
 		return;
+	}
 
 	// header
 	txt << "P7\nWIDTH " << width
 		<< "\nHEIGHT " << height
 		<< "\nMAXVAL 255\nDEPTH 4\nTUPLTYPE RGB_ALPHA\nENDHDR\n";
 
+	// From now on 4 is the channels, we will always do rgba for convenience even when it's pointless
 	std::vector<char> bytes;
 	bytes.resize(4 * height * width);
 
@@ -96,6 +113,8 @@ void Picture::WritePAM(const char* fileName)
 	txt.write(&bytes[0], bytes.size() * sizeof(char));
 
 	txt.close();
+
+	std::cout << "Success writing picture at " << path << std::endl;
 }
 
 void Picture::WriteBMP(const char* fileName)
@@ -103,11 +122,15 @@ void Picture::WriteBMP(const char* fileName)
 	std::string path = "Output/";
 	path += fileName;
 	path += ".bmp";
+	std::cout << "Writing picture at " << path << std::endl;
 
 	std::ofstream txt;
 	txt.open(path, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
 	if (!txt.is_open())
+	{
+		std::cout << "Error writing picture at " << path << std::endl;
 		return;
+	}
 
 	char byte[4];
 
@@ -115,38 +138,48 @@ void Picture::WriteBMP(const char* fileName)
 	txt << 'B' << 'M';
 
 	// FORMAT HEADER
-	// 14 bytes for file header, 40 for BITMAPINFOHEADER, h*w for pic size
-	IntToByte(byte, 14 + 40 + height * width * 4);
+	// full file size, both headers + h*w*c for pic size in bytes
+	IntToByte(byte, BMP_HDR_SIZE + BITMAPINOFHEADER_SIZE + height * width * channels);
 	txt.write(byte, 4 * sizeof(char));
-	IntToByte(byte, 0);
+	IntToByte(byte, 0); // header uses 4 reserved zeros 
+	txt.write(byte, 4 * sizeof(char));
+	IntToByte(byte, BMP_HDR_SIZE + BITMAPINOFHEADER_SIZE); // offset where the pic starts
 	txt.write(byte, 4 * sizeof(char));
 
 	// BITMAPINOFHEADER (https://en.wikipedia.org/wiki/BMP_file_format#DIB_header)
-	IntToByte(byte, 40);
+	IntToByte(byte, BITMAPINOFHEADER_SIZE); // 40 bytes size for this header
 	txt.write(byte, 4 * sizeof(char));
-	IntToByte(byte, width);
+	IntToByte(byte, width); // width, positive because microsoft aint that stupid
 	txt.write(byte, 4 * sizeof(char));
-	IntToByte(byte, height);
+	IntToByte(byte, -height); // Negative height because somehow writing the picture bottom row first as specified by the format still makes it flipped MICROSOOOOOOOOOOOOFT (could be because I put the end of the headers as my offset, maybe positive needs the EOF?)
 	txt.write(byte, 4 * sizeof(char));
 	IntToByte(byte, 1); // IMPORTANT: 2 bytes set to number 1, might need to inverse order here
 	txt.write(byte, 2 * sizeof(char));
-	IntToByte(byte, channels * 8);
+	IntToByte(byte, channels * 8); // bits/pixel, since chans are 3 or 4 for now c*8 works
 	txt.write(byte, 2 * sizeof(char));
 	IntToByte(byte, 0); // Compression: 0 means no compression, we write RAW in this house
 	txt.write(byte, 4 * sizeof(char));
-	IntToByte(byte, channels * 8);
-	txt.write(byte, 4 * sizeof(char)); 
-	IntToByte(byte, channels * height * width * sizeof(char));
+	IntToByte(byte, channels * height * width * sizeof(char)); // image size in bytes
 	txt.write(byte, 4 * sizeof(char));
 	IntToByte(byte, 0); // PPMX, PPMY, Color Table & important colors all set to 0 for unspecified
 	txt.write(byte, 4 * sizeof(char));
 	txt.write(byte, 4 * sizeof(char));
-	txt.write(byte, 4 * sizeof(char));
+	txt.write(byte, 4 * sizeof(char)); // actually this one might need a value for monochrome layers later
 	txt.write(byte, 4 * sizeof(char));
 
+	std::vector<char> bytes;
+	bytes.resize(channels * height * width);
 
+	// a single loop works but akshually bmp should be stored bottom line first, somehow it didn't work and -height was the fix have I told you how much I loathe these goofy "simple format easy to dev frfr" quirks
+	for (int i = 0; i < height; i++)
+		for (int j = 0; j < width; j++)
+			ColorToByte(&bytes[j * 4 + i * width * 4], pixels[j + i * width], true);
+	
+	txt.write(&bytes[0], bytes.size() * sizeof(char));
 
 	txt.close();
+
+	std::cout << "Success writing picture at " << path << std::endl;
 }
 
 #pragma region OLD_CLASS
