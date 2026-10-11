@@ -18,7 +18,8 @@ public:
 
 	std::vector<RGBColor>& GetPixels() { return pixels; }
 
-	void WritePicture(const char* fileName, const PictureFormat format = PictureFormat::PAM);
+	// Write picture to file. BMP doesnt support alpha, BMP_STB does
+	void WritePicture(const char* fileName, const PictureFormat format);
 
 private:
 	int width = 0;
@@ -29,6 +30,11 @@ private:
 
 	void WritePAM(const char* fileName);
 	void WriteBMP(const char* fileName);
+	void WritePNG(const char* fileName);
+	void WriteJPG(const char* fileName);
+	void WriteTGA(const char* fileName);
+	void WriteHDR(const char* fileName);
+	void WriteBMP_STB(const char* fileName);
 };
 
 #pragma region OLD_CLASS

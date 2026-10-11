@@ -38,5 +38,10 @@ struct ColorFrequency
 enum PictureFormat
 {
 	PAM,
-	BMP
+	BMP,
+	PNG,
+	TGA,
+	JPG,
+	HDR,
+	BMP_STB
 };

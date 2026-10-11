@@ -149,6 +149,7 @@
     <ClInclude Include="Include\PictureProcessor.h" />
     <ClInclude Include="Include\RGBColor.h" />
     <ClInclude Include="Include\stb_image.h" />
+    <ClInclude Include="Include\stb_image_write.h" />
     <ClInclude Include="Include\Tests.h" />
     <ClInclude Include="Include\Types.h" />
     <ClInclude Include="Include\Picture.h" />

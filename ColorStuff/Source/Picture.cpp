@@ -4,6 +4,8 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 #include <iostream>
 #include <filesystem>
@@ -76,8 +78,23 @@ void Picture::WritePicture(const char* fileName, const PictureFormat format)
 	case PictureFormat::BMP:
 		WriteBMP(fileName);
 		break;
+	case PictureFormat::PNG:
+		WritePNG(fileName);
+		break;
+	case PictureFormat::JPG:
+		WriteJPG(fileName);
+		break;
+	case PictureFormat::TGA:
+		WriteTGA(fileName);
+		break;
+	case PictureFormat::HDR:
+		WriteHDR(fileName);
+		break;
+	case PictureFormat::BMP_STB:
+		WriteBMP_STB(fileName);
+		break;
 	default:
-		WritePAM(fileName);
+		WritePNG(fileName);
 		break;
 	}
 }
@@ -178,6 +195,106 @@ void Picture::WriteBMP(const char* fileName)
 	txt.write(&bytes[0], bytes.size() * sizeof(char));
 
 	txt.close();
+
+	std::cout << "Success writing picture at " << path << std::endl;
+}
+
+// Uses stb_image_write for compression and such
+void Picture::WritePNG(const char* fileName)
+{
+	std::string path = "Output/";
+	path += fileName;
+	path += ".png";
+	std::cout << "Writing picture at " << path << " using stb" << std::endl;
+
+	std::vector<char> bytes;
+	bytes.resize(channels * height * width);
+
+	for (int i = 0; i < pixels.size(); i++)
+		ColorToByte(&bytes[i * channels], pixels[i]);
+
+	stbi_write_png(path.c_str(), width, height, channels, &bytes[0], width * channels);
+
+	std::cout << "Success writing picture at " << path << std::endl;
+}
+
+void Picture::WriteJPG(const char* fileName)
+{
+	std::string path = "Output/";
+	path += fileName;
+	path += ".jpg";
+	std::cout << "Writing picture at " << path << " using stb" << std::endl;
+
+	std::vector<char> bytes;
+	bytes.resize(channels * height * width);
+
+	for (int i = 0; i < pixels.size(); i++)
+		ColorToByte(&bytes[i * channels], pixels[i]);
+
+	stbi_write_jpg(path.c_str(), width, height, channels, &bytes[0], width * channels);
+
+	std::cout << "Success writing picture at " << path << std::endl;
+}
+
+void Picture::WriteTGA(const char* fileName)
+{
+	std::string path = "Output/";
+	path += fileName;
+	path += ".tga";
+	std::cout << "Writing picture at " << path << " using stb" << std::endl;
+
+	std::vector<char> bytes;
+	bytes.resize(channels * height * width);
+
+	for (int i = 0; i < pixels.size(); i++)
+		ColorToByte(&bytes[i * channels], pixels[i]);
+
+	stbi_write_tga(path.c_str(), width, height, channels, &bytes[0]);
+
+	std::cout << "Success writing picture at " << path << std::endl;
+}
+
+void Picture::WriteHDR(const char* fileName)
+{
+	std::string path = "Output/";
+	path += fileName;
+	path += ".hdr";
+	std::cout << "Writing picture at " << path << " using stb" << std::endl;
+
+	std::vector<float> floats;
+	floats.resize(channels * height * width);
+
+	float div = 1.f / 255.f;
+
+	for (int i = 0; i < pixels.size(); i++)
+	{
+		floats[i * channels] = pixels[i].r * div;
+		floats[i * channels + 1] = pixels[i].g * div;
+		floats[i * channels + 2] = pixels[i].b * div;
+	
+		if (channels == 4)
+			floats[i * channels + 3] = pixels[i].a * div;
+	};
+
+	stbi_write_hdr(path.c_str(), width, height, channels, &floats[0]);
+
+	std::cout << "Success writing picture at " << path << std::endl;
+}
+
+void Picture::WriteBMP_STB(const char* fileName)
+{
+	std::string path = "Output/";
+	path += fileName;
+	path += ".bmp";
+	std::cout << "Writing picture at " << path << " using stb" << std::endl;
+
+	std::vector<char> bytes;
+	bytes.resize(channels * height * width);
+
+	for (int i = 0; i < pixels.size(); i++)
+		ColorToByte(&bytes[i * channels], pixels[i]);
+
+	stbi_write_bmp(path.c_str(), width, height, channels, &bytes[0]);
 
 	std::cout << "Success writing picture at " << path << std::endl;
 }
