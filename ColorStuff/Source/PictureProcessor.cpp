@@ -106,7 +106,8 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 
 	delete layersData;
 
-	inPicture.WritePicture(outName, PictureFormat::BMP_STB);
+	// Saves a copy of the picture with the reduced palette
+	ReducePalette(inPicture); 
 	inPicture.WritePicture(outName, PictureFormat::PNG);
 }
 
