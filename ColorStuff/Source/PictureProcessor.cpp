@@ -80,29 +80,31 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 	WritePalette(centers, outName);
 
 	// making a pointer because we need to duplicate this data when converting to picture type, and we'll delete once the copy is made to save on resources asap
-	// TODO: make layer system work with picture type directly, even if pixels becomes public thus needing refactoring everywhere GetPixels is used
-	std::vector<std::vector<RGBColor>>* layers = new std::vector<std::vector<RGBColor>>();
-	layers->resize(centers.size());
+	// TODO: make ReducePalette work with picture type directly, even if pixels becomes public thus needing refactoring everywhere GetPixels is used
+	std::vector<std::vector<RGBColor>>* layersData = new std::vector<std::vector<RGBColor>>();
+	layersData->resize(centers.size());
 
-	for (int i = 0; i < layers->size(); i++)
-		(*layers)[i].resize(inPicture.GetPixels().size());
+	for (int i = 0; i < layersData->size(); i++)
+		(*layersData)[i].resize(inPicture.GetPixels().size());
 
-	ReducePalette(inPicture, layers);
+	ReducePalette(inPicture, layersData);
 
-	Picture tempLayer = inPicture;
-	
-	for (int i = 0; i < layers->size(); i++)
+	std::vector<Picture> layers;
+	layers.resize(layersData->size());
+
+	for (int i = 0; i < layersData->size(); i++)
 	{
 		std::string str = "Layers/";
 		str += outName;
 		str += "_" + std::to_string(i); 
-		tempLayer.SetPixels((*layers)[i]);
-		tempLayer.WritePicture(str.c_str(), PictureFormat::PNG);
+		layers[i].CopyInfo(inPicture);
+		layers[i].SetPixels((*layersData)[i]);
+		layers[i].WritePicture(str.c_str(), PictureFormat::PNG);
+		(*layersData)[i].resize(0); // "clears" vector, memory still here
+		(*layersData)[i].shrink_to_fit(); // reduce size in memory to 0
 	}
 
-
-	delete layers;
-
+	delete layersData;
 
 	inPicture.WritePicture(outName, PictureFormat::BMP_STB);
 	inPicture.WritePicture(outName, PictureFormat::PNG);

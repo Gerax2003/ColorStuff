@@ -8,6 +8,7 @@ class Picture
 {
 public:
 	void Open(const char* path);
+	void CopyInfo(const Picture& basePic);
 
 	Dimensions GetDimensions() const {
 		Dimensions dim; 
@@ -21,6 +22,7 @@ public:
 
 	// Write picture to file. BMP doesnt support alpha, BMP_STB does
 	void WritePicture(const char* fileName, const PictureFormat format);
+
 
 private:
 	int width = 0;

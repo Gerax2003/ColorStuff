@@ -68,6 +68,13 @@ void Picture::Open(const char* path)
 	stbi_image_free(data);	
 }
 
+void Picture::CopyInfo(const Picture& basePic)
+{
+	width = basePic.width;
+	height = basePic.height;
+	channels = basePic.channels;
+}
+
 void Picture::WritePicture(const char* fileName, const PictureFormat format)
 {
 	switch (format)
