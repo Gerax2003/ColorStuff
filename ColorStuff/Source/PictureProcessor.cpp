@@ -10,6 +10,14 @@
 
 void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 {
+	// Create output directories before anything
+	std::filesystem::path outputPath{ "Output" };
+	std::filesystem::path layersPath{ "Output/Layers" };
+	if (!std::filesystem::exists(outputPath))
+		std::filesystem::create_directory(outputPath);
+	if (!std::filesystem::exists(layersPath))
+		std::filesystem::create_directory(layersPath);
+
 	std::map<RGBColor, int> colorMap;
 
 	// List all colors and how many pixels use them
@@ -71,7 +79,30 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 
 	WritePalette(centers, outName);
 
-	ReducePalette(inPicture);
+	// making a pointer because we need to duplicate this data when converting to picture type, and we'll delete once the copy is made to save on resources asap
+	// TODO: make layer system work with picture type directly, even if pixels becomes public thus needing refactoring everywhere GetPixels is used
+	std::vector<std::vector<RGBColor>>* layers = new std::vector<std::vector<RGBColor>>();
+	layers->resize(centers.size());
+
+	for (int i = 0; i < layers->size(); i++)
+		(*layers)[i].resize(inPicture.GetPixels().size());
+
+	ReducePalette(inPicture, layers);
+
+	Picture tempLayer = inPicture;
+	
+	for (int i = 0; i < layers->size(); i++)
+	{
+		std::string str = "Layers/";
+		str += outName;
+		str += "_" + std::to_string(i); 
+		tempLayer.SetPixels((*layers)[i]);
+		tempLayer.WritePicture(str.c_str(), PictureFormat::PNG);
+	}
+
+
+	delete layers;
+
 
 	inPicture.WritePicture(outName, PictureFormat::BMP_STB);
 	inPicture.WritePicture(outName, PictureFormat::PNG);
@@ -87,7 +118,7 @@ void PictureProcessor::WritePalette(std::vector<RGBColor>& colors, const std::st
 	RGBColor c0;
 	c0.a = 1;
 
-	colors.push_back(c0);
+	colors.push_back(c0); // forgot why I did that but we add (0, 0, 0, 1) when writing the palette for paint.net
 	std::string str = "";
 	for (const RGBColor& c : colors)
 	{
@@ -100,10 +131,12 @@ void PictureProcessor::WritePalette(std::vector<RGBColor>& colors, const std::st
 	txt << str;
 	txt.close();
 
+	colors.pop_back(); // remove what we added 
+
 	std::cout << "Palette written in: Output/" << paletteName << ".txt" << std::endl;
 }
 
-void PictureProcessor::ReducePalette(Picture& inPicture)
+void PictureProcessor::ReducePalette(Picture& inPicture, std::vector<std::vector<RGBColor>>* layers)
 {
 	std::vector<RGBColor>& pixels = inPicture.GetPixels();
 
@@ -138,7 +171,13 @@ void PictureProcessor::ReducePalette(Picture& inPicture)
 			}
 		}
 
-		pixels[i] = centers[id];
+		if (layers == nullptr)
+			pixels[i] = centers[id];
+		else
+		{
+			(*layers)[id][i] = centers[id];
+		}
+		
 	}
 	std::cout << "Progress @ 100% (" << pixels.size() << "/" << pixels.size() << ")" << std::endl << std::endl;
 }

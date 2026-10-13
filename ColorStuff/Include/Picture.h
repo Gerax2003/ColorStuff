@@ -17,6 +17,7 @@ public:
 	}
 
 	std::vector<RGBColor>& GetPixels() { return pixels; }
+	void SetPixels(std::vector<RGBColor>& inPixels) { pixels = inPixels; }
 
 	// Write picture to file. BMP doesnt support alpha, BMP_STB does
 	void WritePicture(const char* fileName, const PictureFormat format);
