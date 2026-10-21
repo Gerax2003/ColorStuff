@@ -79,32 +79,25 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 
 	WritePalette(centers, outName);
 
-	// making a pointer because we need to duplicate this data when converting to picture type, and we'll delete once the copy is made to save on resources asap
-	// TODO: make ReducePalette work with picture type directly, even if pixels becomes public thus needing refactoring everywhere GetPixels is used
-	std::vector<std::vector<RGBColor>>* layersData = new std::vector<std::vector<RGBColor>>();
-	layersData->resize(centers.size());
+	std::vector<Layer> layers;
+	layers.resize(centers.size());
 
-	for (int i = 0; i < layersData->size(); i++)
-		(*layersData)[i].resize(inPicture.GetPixels().size());
+	for (int i = 0; i < layers.size(); i++)
+		layers[i].Init(inPicture.GetDimensions(), centers[i]);
 
-	ReducePalette(inPicture, layersData);
+	ReducePalette(inPicture, layers);
 
-	std::vector<Picture> layers;
-	layers.resize(layersData->size());
-
-	for (int i = 0; i < layersData->size(); i++)
+	Picture layerPic;
+	layerPic.CopyInfo(inPicture);
+	for (int i = 0; i < layers.size(); i++)
 	{
 		std::string str = "Layers/";
 		str += outName;
-		str += "_" + std::to_string(i); 
-		layers[i].CopyInfo(inPicture);
-		layers[i].SetPixels((*layersData)[i]);
-		layers[i].WritePicture(str.c_str(), PictureFormat::PNG);
-		(*layersData)[i].resize(0); // "clears" vector, memory still here
-		(*layersData)[i].shrink_to_fit(); // reduce size in memory to 0
+		str += "_" + std::to_string(i);
+				
+		layerPic.SetPixels(layers[i].pixels, layers[i].color);
+		layerPic.WritePicture(str.c_str(), PictureFormat::PNG);
 	}
-
-	delete layersData;
 
 	// Saves a copy of the picture with the reduced palette
 	ReducePalette(inPicture); 
@@ -139,12 +132,13 @@ void PictureProcessor::WritePalette(std::vector<RGBColor>& colors, const std::st
 	std::cout << "Palette written in: Output/" << paletteName << ".txt" << std::endl;
 }
 
+
 void PictureProcessor::ReducePalette(Picture& inPicture, std::vector<std::vector<RGBColor>>* layers)
 {
 	std::vector<RGBColor>& pixels = inPicture.GetPixels();
 
 	std::cout << "Reducing palette of the original picture, processing " << pixels.size() << " pixels" << std::endl;
-	
+
 	for (int i = 0; i < pixels.size(); i++)
 	{
 		for (int p = 1; p < 10; p++)
@@ -180,7 +174,54 @@ void PictureProcessor::ReducePalette(Picture& inPicture, std::vector<std::vector
 		{
 			(*layers)[id][i] = centers[id];
 		}
-		
+
+	}
+	std::cout << "Progress @ 100% (" << pixels.size() << "/" << pixels.size() << ")" << std::endl << std::endl;
+}
+
+void PictureProcessor::ReducePalette(Picture& inPicture, std::vector<Layer>& layers)
+{
+	std::vector<RGBColor>& pixels = inPicture.GetPixels();
+
+	std::cout << "Reducing palette of the original picture, processing " << pixels.size() << " pixels" << std::endl;
+	
+	for (int i = 0; i < pixels.size(); i++)
+	{
+		for (int p = 1; p < 10; p++)
+		{
+			int tenth = pixels.size() / 10;
+			if (i == tenth * p)
+			{
+				std::cout << "Progress @ " << p * 10 << "% (" << i << "/" << pixels.size() << ")" << std::endl;
+				break;
+			}
+		}
+
+		if (pixels[i].a == 0)
+			continue;
+
+		int id = 0;
+		float d = FLT_MAX;
+
+		for (int j = 0; j < centers.size(); j++)
+		{
+			float dist = centers[j].SqDist(pixels[i]);
+
+			if (dist < d)
+			{
+				d = dist;
+				id = j;
+			}
+		}
+
+		Layer& layer = layers[id];
+
+		layer.pixels[i] = true;
+
+		layer.lowBounds.width = std::min(layer.lowBounds.width, i % inPicture.GetDimensions().width);
+		layer.highBounds.width = std::max(layer.lowBounds.width, i % inPicture.GetDimensions().width);
+		layer.lowBounds.height = std::min(layer.lowBounds.height, i % inPicture.GetDimensions().height);
+		layer.highBounds.height = std::max(layer.lowBounds.height, i % inPicture.GetDimensions().height);
 	}
 	std::cout << "Progress @ 100% (" << pixels.size() << "/" << pixels.size() << ")" << std::endl << std::endl;
 }

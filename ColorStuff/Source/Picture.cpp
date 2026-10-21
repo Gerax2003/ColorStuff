@@ -73,6 +73,15 @@ void Picture::CopyInfo(const Picture& basePic)
 	width = basePic.width;
 	height = basePic.height;
 	channels = basePic.channels;
+	pixels.resize(width * height);
+}
+
+void Picture::SetPixels(const std::vector<bool>& inPixels, const RGBColor& color)
+{
+	RGBColor alpha = { 0, 0, 0, 0 };
+
+	for (int i = 0; i < inPixels.size(); i++)
+		pixels[i] = inPixels[i] ? color : alpha;
 }
 
 void Picture::WritePicture(const char* fileName, const PictureFormat format)

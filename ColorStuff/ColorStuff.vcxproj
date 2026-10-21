@@ -136,6 +136,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\LabColor.cpp" />
+    <ClCompile Include="Source\Layer.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Picture.cpp" />
     <ClCompile Include="Source\PictureProcessor.cpp" />
@@ -146,6 +147,7 @@
   <ItemGroup>
     <ClInclude Include="Include\Constants.h" />
     <ClInclude Include="Include\LabColor.h" />
+    <ClInclude Include="Include\Layer.h" />
     <ClInclude Include="Include\PictureProcessor.h" />
     <ClInclude Include="Include\RGBColor.h" />
     <ClInclude Include="Include\stb_image.h" />
