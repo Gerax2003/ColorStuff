@@ -417,14 +417,14 @@ void Picture_Old::GetChunk()
 	// 1st chunk
 	if (strType == "IHDR")
 	{
-		dims.width = IntFromData(chkData.data());
-		dims.height = IntFromData(chkData.data(), 4);
+		dims.x = IntFromData(chkData.data());
+		dims.y = IntFromData(chkData.data(), 4);
 		compression = (int)chkData[10];
 		filter = (int)chkData[11];
 		interlaced = (int)chkData[12];
 
 
-		std::cout << "Image dimesions are " << dims.width << "x" << dims.height << std::endl;
+		std::cout << "Image dimesions are " << dims.x << "x" << dims.y << std::endl;
 		std::cout << "Bits per channel: " << (int)chkData[8] << "; Color type " << (int)chkData[9] << std::endl;
 		std::cout << "Compression: " << compression << "; Filter: " << filter << "; Interlaced: " << interlaced << std::endl;
 	}

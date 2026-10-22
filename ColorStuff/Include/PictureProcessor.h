@@ -15,12 +15,17 @@ public:
 	// writes the color palette in a txt file following paint.net's format
 	void WritePalette(std::vector<RGBColor>& colors, const std::string& paletteName);
 
+	int paletteSize = 16;
+	int fittingIterations = 1000;
+
 private:
 	std::vector<ColorFrequency> colorFrequencies;
 	std::vector<RGBColor> centers;
 
+	void GetFrequencies(const Picture& inPicture);
+
 	void ReducePalette(Picture& inPicture, std::vector<std::vector<RGBColor>>* layers = nullptr);
-	void ReducePalette(Picture& inPicture, std::vector<Layer>& layers);
+	void ReducePalette(const Picture& inPicture, std::vector<Layer>& layers);
 
 	void KMeans(int maxIterations = 4);
 	void KPP(int numCenters);

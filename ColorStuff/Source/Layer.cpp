@@ -11,12 +11,16 @@ Layer::~Layer()
 
 }
 
-void Layer::Init(const Dimensions& inSize, const RGBColor& inColor)
+void Layer::Init(const Vector2& inSize, const RGBColor& inColor)
 {
 	color = inColor;
-	pixels.resize(inSize.height * inSize.width, false);
+	pixels.resize(inSize.y * inSize.x, false);
 	size = inSize;
 	lowBounds = size;
 	highBounds = { 0, 0 };
 }
 
+void Layer::FindPaths()
+{
+
+}

@@ -6,10 +6,10 @@
 #include "XYZColor.h"
 #include "LabColor.h"
 
-struct Dimensions
+struct Vector2
 {
-	int width;
-	int height;
+	int x;
+	int y;
 };
 
 struct ColorFrequency

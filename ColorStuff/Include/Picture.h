@@ -10,14 +10,15 @@ public:
 	void Open(const char* path);
 	void CopyInfo(const Picture& basePic);
 
-	Dimensions GetDimensions() const {
-		Dimensions dim; 
-		dim.height = height;
-		dim.width = width;
+	Vector2 GetDimensions() const {
+		Vector2 dim; 
+		dim.y = height;
+		dim.x = width;
 		return dim;
 	}
 
 	std::vector<RGBColor>& GetPixels() { return pixels; }
+	const std::vector<RGBColor>& GetPixelsConst() const { return pixels; } 
 	void SetPixels(std::vector<RGBColor>& inPixels) { pixels = inPixels; }
 	void SetPixels(const std::vector<bool>& inPixels, const RGBColor& color);
 
@@ -52,7 +53,7 @@ public:
 private:
 	std::ifstream pic;
 
-	Dimensions dims;
+	Vector2 dims;
 
 	int compression	= 0;
 	int filter		= 0;

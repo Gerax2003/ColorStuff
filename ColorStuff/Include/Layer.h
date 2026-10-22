@@ -10,7 +10,9 @@ public:
 	Layer();
 	~Layer();
 
-	void Init(const Dimensions& inSize, const RGBColor& inColor);
+	void Init(const Vector2& inSize, const RGBColor& inColor);
+
+	void FindPaths();
 
 	// Each layer has one color only
 	RGBColor color;
@@ -18,13 +20,14 @@ public:
 	std::vector<bool> pixels;
 
 	// Dimensions of the base picture
-	Dimensions size;
+	Vector2 size;
 
 	// X-Y coordinates of when color starts
-	Dimensions lowBounds;
+	Vector2 lowBounds;
 	// X-Y coordinates of when color ends
-	Dimensions highBounds;
+	Vector2 highBounds;
 
+	int pixelCount = 0;
 private:
 
 };

@@ -18,64 +18,19 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 	if (!std::filesystem::exists(layersPath))
 		std::filesystem::create_directory(layersPath);
 
-	std::map<RGBColor, int> colorMap;
+	GetFrequencies(inPicture);
 
-	// List all colors and how many pixels use them
-	for (RGBColor c : inPicture.GetPixels())
-	{
-		// transparent is useless for our usage
-		if (c.a <= 196)
-			continue;
-			//c = 0;
-		// light transparency is basically the same as opaque, reduce color numbers
-		if (c.a >= 196)
-			c.a = 255;
-
-		if (colorMap.find(c) != colorMap.end())
-			colorMap[c]++;
-		else
-			colorMap[c] = 1;
-	}
-
-	// Change from a map to a vector sorted by frequency for convenience of use
-	colorFrequencies.resize(colorMap.size());
-	int i = 0;
-	for (std::map<RGBColor, int>::iterator it = colorMap.begin(); it != colorMap.end(); ++it)
-	{
-		colorFrequencies[i].c = it->first;
-		colorFrequencies[i].frequency = it->second;
-		i++;
-	}
-	std::sort(colorFrequencies.begin(), colorFrequencies.end(), std::greater<ColorFrequency>());
-
-	
-	float invImgSize = inPicture.GetDimensions().width * inPicture.GetDimensions().height;
-	invImgSize = 1 / invImgSize;
-	i = 0;
-	std::cout << "Color count (max 100): " << std::endl;
-	for (const ColorFrequency& cf : colorFrequencies)
-	{
-		std::cout << i << "  -(" << cf.c.r << "," << cf.c.g << "," << cf.c.b << "," << cf.c.a << "): " << cf.frequency * invImgSize * 100 << "% [" << cf.frequency << "]\n";
-		i++;
-		if (i > 100)
-			break;
-	}
-
-	KPP(16);
+	KPP(paletteSize);
 
 	std::cout << "Base centers: " << std::endl;
 	for (const RGBColor& c : centers)
-	{
 		std::cout << "(" << c.r << "," << c.g << "," << c.b << "," << c.a << ")" << "\n";
-		i++;
-	}
-	KMeans(1000);
+
+	KMeans(fittingIterations);
+
 	std::cout << "-------------\n" << "New centers: " << std::endl;
 	for (const RGBColor& c : centers)
-	{
 		std::cout << "(" << c.r << "," << c.g << "," << c.b << "," << c.a << ")" << "\n";
-		i++;
-	}
 
 	WritePalette(centers, outName);
 
@@ -86,6 +41,10 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 		layers[i].Init(inPicture.GetDimensions(), centers[i]);
 
 	ReducePalette(inPicture, layers);
+	
+	for (int i = 0; i < layers.size(); i++)
+		layers[i].FindPaths();
+
 
 	Picture layerPic;
 	layerPic.CopyInfo(inPicture);
@@ -133,6 +92,51 @@ void PictureProcessor::WritePalette(std::vector<RGBColor>& colors, const std::st
 }
 
 
+void PictureProcessor::GetFrequencies(const Picture& inPicture)
+{
+	std::map<RGBColor, int> colorMap;
+
+	// List all colors and how many pixels use them
+	for (RGBColor c : inPicture.GetPixelsConst())
+	{
+		// transparent is useless for our usage
+		if (c.a <= 196)
+			continue;
+		//c = 0;
+	// light transparency is basically the same as opaque, reduce color numbers
+		if (c.a >= 196)
+			c.a = 255;
+
+		if (colorMap.find(c) != colorMap.end())
+			colorMap[c]++;
+		else
+			colorMap[c] = 1;
+	}
+
+	// Change from a map to a vector sorted by frequency for convenience of use
+	colorFrequencies.resize(colorMap.size());
+	int i = 0;
+	for (std::map<RGBColor, int>::iterator it = colorMap.begin(); it != colorMap.end(); ++it)
+	{
+		colorFrequencies[i].c = it->first;
+		colorFrequencies[i].frequency = it->second;
+		i++;
+	}
+	std::sort(colorFrequencies.begin(), colorFrequencies.end(), std::greater<ColorFrequency>());
+
+	float invImgSize = inPicture.GetDimensions().x * inPicture.GetDimensions().y;
+	invImgSize = 1 / invImgSize;
+	i = 0;
+	std::cout << "Color count (max 100): " << std::endl;
+	for (const ColorFrequency& cf : colorFrequencies)
+	{
+		std::cout << i << "  -(" << cf.c.r << "," << cf.c.g << "," << cf.c.b << "," << cf.c.a << "): " << cf.frequency * invImgSize * 100 << "% [" << cf.frequency << "]\n";
+		i++;
+		if (i > 100)
+			break;
+	}
+}
+
 void PictureProcessor::ReducePalette(Picture& inPicture, std::vector<std::vector<RGBColor>>* layers)
 {
 	std::vector<RGBColor>& pixels = inPicture.GetPixels();
@@ -179,9 +183,9 @@ void PictureProcessor::ReducePalette(Picture& inPicture, std::vector<std::vector
 	std::cout << "Progress @ 100% (" << pixels.size() << "/" << pixels.size() << ")" << std::endl << std::endl;
 }
 
-void PictureProcessor::ReducePalette(Picture& inPicture, std::vector<Layer>& layers)
+void PictureProcessor::ReducePalette(const Picture& inPicture, std::vector<Layer>& layers)
 {
-	std::vector<RGBColor>& pixels = inPicture.GetPixels();
+	const std::vector<RGBColor>& pixels = inPicture.GetPixelsConst();
 
 	std::cout << "Reducing palette of the original picture, processing " << pixels.size() << " pixels" << std::endl;
 	
@@ -217,11 +221,11 @@ void PictureProcessor::ReducePalette(Picture& inPicture, std::vector<Layer>& lay
 		Layer& layer = layers[id];
 
 		layer.pixels[i] = true;
-
-		layer.lowBounds.width = std::min(layer.lowBounds.width, i % inPicture.GetDimensions().width);
-		layer.highBounds.width = std::max(layer.lowBounds.width, i % inPicture.GetDimensions().width);
-		layer.lowBounds.height = std::min(layer.lowBounds.height, i % inPicture.GetDimensions().height);
-		layer.highBounds.height = std::max(layer.lowBounds.height, i % inPicture.GetDimensions().height);
+		layer.pixelCount++;
+		layer.lowBounds.x = std::min(layer.lowBounds.x, i % inPicture.GetDimensions().x);
+		layer.highBounds.x = std::max(layer.lowBounds.x, i % inPicture.GetDimensions().x);
+		layer.lowBounds.y = std::min(layer.lowBounds.y, i % inPicture.GetDimensions().y);
+		layer.highBounds.y = std::max(layer.lowBounds.y, i % inPicture.GetDimensions().y);
 	}
 	std::cout << "Progress @ 100% (" << pixels.size() << "/" << pixels.size() << ")" << std::endl << std::endl;
 }
