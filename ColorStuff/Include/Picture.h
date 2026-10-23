@@ -10,8 +10,8 @@ public:
 	void Open(const char* path);
 	void CopyInfo(const Picture& basePic);
 
-	Vector2 GetDimensions() const {
-		Vector2 dim; 
+	IVector2 GetDimensions() const {
+		IVector2 dim; 
 		dim.y = height;
 		dim.x = width;
 		return dim;
@@ -53,7 +53,7 @@ public:
 private:
 	std::ifstream pic;
 
-	Vector2 dims;
+	IVector2 dims;
 
 	int compression	= 0;
 	int filter		= 0;
