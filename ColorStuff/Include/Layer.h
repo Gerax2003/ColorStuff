@@ -16,6 +16,8 @@ public:
 
 	void FindPaths();
 
+	std::vector<RGBColor> dbgPathsToColors();
+
 	// Each layer has one color only
 	RGBColor color;
 
@@ -31,9 +33,17 @@ public:
 
 	int pixelCount = 0;
 private:
-	void ContinuePath(PixelPath& path, PixelPathDir direction);
+	// BREAKS THE HEAP MEMORY SIZE DO NOT USE. Recursive function based on the last pixel from the path
+	void ContinuePath_R(PixelPath& path, PixelPathDir direction);
+
+	void MakePath(PixelPath& path);
 	// True if quadrant is ok to start a path based on direction, false if all 3 neighbors are colored
 	bool CheckQuadrant(IVector2 pixel, PixelPathDir direction);
+
+	// Get neighbors 0 1 2
+	// In the shape: 3 x 4
+	//				 5 6 7
+	void GetNeighborsStatus(IVector2 pixel, bool* neighbors);
 
 	std::vector<PixelPath> pixelPaths;
 };

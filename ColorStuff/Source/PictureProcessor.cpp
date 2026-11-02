@@ -13,10 +13,13 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 	// Create output directories before anything
 	std::filesystem::path outputPath{ "Output" };
 	std::filesystem::path layersPath{ "Output/Layers" };
+	std::filesystem::path pathsPath{ "Output/Paths" };
 	if (!std::filesystem::exists(outputPath))
 		std::filesystem::create_directory(outputPath);
 	if (!std::filesystem::exists(layersPath))
 		std::filesystem::create_directory(layersPath);
+	if (!std::filesystem::exists(pathsPath))
+		std::filesystem::create_directory(pathsPath);
 
 	GetFrequencies(inPicture);
 
@@ -41,11 +44,10 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 		layers[i].Init(inPicture.GetDimensions(), centers[i]);
 
 	ReducePalette(inPicture, layers);
-	
+
 	for (int i = 0; i < layers.size(); i++)
 		layers[i].FindPaths();
-
-
+	
 	Picture layerPic;
 	layerPic.CopyInfo(inPicture);
 	for (int i = 0; i < layers.size(); i++)
@@ -55,6 +57,13 @@ void PictureProcessor::ProcessPicture(Picture& inPicture, const char* outName)
 		str += "_" + std::to_string(i);
 				
 		layerPic.SetPixels(layers[i].pixels, layers[i].color);
+		layerPic.WritePicture(str.c_str(), PictureFormat::PNG);
+
+		std::vector<RGBColor> paths = layers[i].dbgPathsToColors();
+		layerPic.SetPixels(paths);
+		str = "Paths/";
+		str += outName;
+		str += "_" + std::to_string(i);
 		layerPic.WritePicture(str.c_str(), PictureFormat::PNG);
 	}
 

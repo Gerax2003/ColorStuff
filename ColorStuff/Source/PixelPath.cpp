@@ -6,7 +6,7 @@
 bool PixelPath::AddPoint(IVector2 point)
 {
 	//if (std::find(path.begin(), path.end(), point) != path.end())
-	if (path.size() > 0 && point == path[0])
+	if (path.size() > 0 && point == path[0]) // if back at the beginning
 	{
 		path.push_back(point); // push back to "close" the path
 		return false;
