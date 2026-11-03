@@ -76,6 +76,15 @@ struct RGBColor
 		r.a = this->a + c.a;
 		return r;
 	}
+	RGBColor operator-(const RGBColor& c) const
+	{
+		RGBColor r;
+		r.r = this->r - c.r;
+		r.g = this->g - c.g;
+		r.b = this->b - c.b;
+		r.a = this->a - c.a;
+		return r;
+	}
 	RGBColor operator/(const float d) const
 	{
 		RGBColor c;

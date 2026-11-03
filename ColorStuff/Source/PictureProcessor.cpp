@@ -232,9 +232,9 @@ void PictureProcessor::ReducePalette(const Picture& inPicture, std::vector<Layer
 		layer.pixels[i] = true;
 		layer.pixelCount++;
 		layer.lowBounds.x = std::min(layer.lowBounds.x, i % inPicture.GetDimensions().x);
-		layer.highBounds.x = std::max(layer.lowBounds.x, i % inPicture.GetDimensions().x);
-		layer.lowBounds.y = std::min(layer.lowBounds.y, i % inPicture.GetDimensions().y);
-		layer.highBounds.y = std::max(layer.lowBounds.y, i % inPicture.GetDimensions().y);
+		layer.highBounds.x = std::max(layer.highBounds.x, i % inPicture.GetDimensions().x);
+		layer.lowBounds.y = std::min(layer.lowBounds.y, (int)std::floor(i / inPicture.GetDimensions().x));
+		layer.highBounds.y = std::max(layer.highBounds.y, (int)std::floor(i / inPicture.GetDimensions().x));
 	}
 	std::cout << "Progress @ 100% (" << pixels.size() << "/" << pixels.size() << ")" << std::endl << std::endl;
 }

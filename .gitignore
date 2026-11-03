@@ -3,6 +3,8 @@
 
 Output/
 
+compileData.*
+
 ### C++ ###
 # Prerequisites
 *.d

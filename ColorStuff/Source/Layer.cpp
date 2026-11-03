@@ -27,7 +27,7 @@ void Layer::Init(const IVector2& inSize, const RGBColor& inColor)
 
 void Layer::FindPaths()
 {
-	std::cout << "------------------------\nFinding paths in layer of bounds (" << size.x << ", " << size.y << "), " << pixelCount << " pixels" << std::endl;
+	std::cout << "------------------------\nFinding paths in layer of bounds (" << lowBounds.x << ", " << lowBounds.y << "), (" << highBounds.x << ", " << highBounds.y << "), " << pixelCount << " pixels" << std::endl;
 
 	// TODO: woe, heavily unoptimised algo upon ye
 	for (int i = lowBounds.y; i <= highBounds.y; i++) // i = line, y
@@ -60,13 +60,13 @@ void Layer::FindPaths()
 				if (skipPoint)
 					continue;
 
-				std::cout << "Path " << pixelPaths.size() + 1 << "found @ (" << j << ", " << i << ")" << std::endl;
+				//std::cout << "Path " << pixelPaths.size() + 1 << "found @ (" << j << ", " << i << ")" << std::endl;
 
 				PixelPath path;
 				path.AddPoint({ j, i });
 				MakePath(path);
 				// ContinuePath_R(path, PixelPathDir::RIGHT);
-				std::cout << "Path done, length " << path.GetLength() << std::endl;
+				//std::cout << "Path done, length " << path.GetLength() << std::endl;
 
 				pixelPaths.push_back(path);
 			}
@@ -74,14 +74,16 @@ void Layer::FindPaths()
 	}
 
 	// Paths below this size will be removed to prevent small barely visible stains from popping in
-	// Min size scales on image size, to prevent de-staining on pixel art and such
-	int minPathSize = (size.x * size.y) * PATH_MIN_PERCENTAGE;
+	// Min size scales on image size, to prevent de-staining on pixel art and small res pics
+	//int minPathSize = (size.x * size.y) * PATH_MIN_LIN_SCALE;
+	// Do the tweaking in desmos, much easier [round((f(x)^c)/p)] with f(x)=round(x*a*m)
+	int minPathSize = pow(size.x * size.y * PATH_MIN_LIN_SCALE, PATH_MIN_EXP_SCALE) / PATH_MIN_INV_SCALE;
 
 	for (int i = pixelPaths.size() - 1; i > 0; i--)
-		if (pixelPaths.size() <= minPathSize)
+		if (pixelPaths[i].GetLength() <= minPathSize)
 			pixelPaths.erase(pixelPaths.begin() + i);
 
-	std::cout << "Paths completed and reduced, total: " << pixelPaths.size() << "\n------------------------" << std::endl;
+	std::cout << "Paths completed and reduced, total: " << pixelPaths.size() << " (cutoff length @" << minPathSize << ")\n------------------------" << std::endl;
 
 }
 
@@ -90,22 +92,37 @@ std::vector<RGBColor> Layer::dbgPathsToColors()
 	std::vector<RGBColor> r;
 	r.resize(size.x * size.y);
 
+	RGBColor border = { 0, 255, 0, 255 };
+	for (int i = lowBounds.x; i <= highBounds.x; i++)
+	{
+		r[lowBounds.y * size.x + i] = border;
+		r[highBounds.y * size.x + i] = border;
+	}
+	for (int i = lowBounds.y; i <= highBounds.y; i++)
+	{
+		r[i * size.x + lowBounds.x] = border;
+		r[i * size.x + highBounds.x] = border;
+	}
+
+	// draw paths, start in red, c1 to c2 linear gradient for path
 	for (PixelPath p : pixelPaths)
 	{
 		std::vector<IVector2> path = p.dbgGetPath();
 	
 		RGBColor c = {};
+		RGBColor c1 = { 0, 255, 255, 255 };
+		RGBColor c2 = { 0, 0, 255, 255 };
 		for (int i = 0; i < path.size(); i++)
 		{
-			if (i == 0)
+			if (i == 0 || i == path.size() - 1)
 				c = { 255, 0, 0, 255 };
 			else
-				c = { 0, 0, 255, 255 };
+				c = c1 + (c2 - c1) * ((float)(i) / (float)(path.size()));
 
 			r[size.x * path[i].y + path[i].x] = c;
 		}
 	}
-	
+
 	return r;
 }
 
